@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="icon.png" alt="Numinator icon" width="128" height="128">
+</p>
+
 # Numinator
 
 A notational calculator — a text editor where every line can be a calculation, with the result shown live in a column on the right. Inspired by apps like [Numi](https://numi.app) and Soulver.
