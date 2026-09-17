@@ -16,6 +16,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "font-list": "^2.1.0",
     "lucide-react": "^1.47.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
@@ -25,19 +26,31 @@
     "appId": "com.numinator.app",
     "productName": "Numinator",
     "icon": "icon.png",
-    "files": ["dist", "dist-electron", "!node_modules/**/*"],
+    "files": [
+      "dist",
+      "dist-electron",
+      "!node_modules/**/*",
+      "node_modules/font-list/**/*"
+    ],
     "directories": {
       "output": "release"
     },
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "category": "public.app-category.utilities"
     },
     "win": {
-      "target": ["nsis"]
+      "target": [
+        "nsis"
+      ]
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Utility"
     },
     "publish": {

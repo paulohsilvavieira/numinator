@@ -21,7 +21,7 @@ function App() {
       className="numi"
       style={
         {
-          "--numi-font-family": settings.fontFamily,
+          "--numi-font-family": `"${settings.fontFamily}", ui-monospace, monospace`,
           "--numi-font-size": `${settings.fontSize}px`,
         } as React.CSSProperties
       }

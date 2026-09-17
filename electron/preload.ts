@@ -7,6 +7,11 @@ export interface OpenedFile {
 
 export type MenuAction = "open" | "save" | "saveAs";
 
+export interface FontInfo {
+  name: string;
+  monospace: boolean;
+}
+
 contextBridge.exposeInMainWorld("numinator", {
   openFile: (): Promise<OpenedFile | null> => ipcRenderer.invoke("file:open"),
   readFile: (path: string): Promise<OpenedFile | null> => ipcRenderer.invoke("file:read", path),
@@ -18,4 +23,5 @@ contextBridge.exposeInMainWorld("numinator", {
     return () => ipcRenderer.removeListener("menu:action", listener);
   },
   setTitle: (title: string) => ipcRenderer.send("window:setTitle", title),
+  listFonts: (): Promise<FontInfo[]> => ipcRenderer.invoke("fonts:list"),
 });

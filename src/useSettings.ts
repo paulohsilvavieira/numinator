@@ -5,17 +5,8 @@ export interface Settings {
   fontSize: number;
 }
 
-export const FONT_OPTIONS = [
-  { label: "SF Mono", value: '"SF Mono", ui-monospace, Menlo, Consolas, monospace' },
-  { label: "JetBrains Mono", value: '"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace' },
-  { label: "Fira Code", value: '"Fira Code", ui-monospace, Menlo, Consolas, monospace' },
-  { label: "Menlo", value: "Menlo, Consolas, monospace" },
-  { label: "Consolas", value: "Consolas, Menlo, monospace" },
-  { label: "System Monospace", value: "ui-monospace, monospace" },
-];
-
 const DEFAULT_SETTINGS: Settings = {
-  fontFamily: FONT_OPTIONS[0].value,
+  fontFamily: "ui-monospace",
   fontSize: 15,
 };
 
