@@ -40,6 +40,17 @@ npm run dev      # starts Vite + Electron in dev mode
 ```bash
 npm run build          # type-check + build the renderer and main process
 npm run dist:linux     # package a portable Linux AppImage into release/
+npm run dist:mac       # package a macOS .dmg/.zip (must run on macOS)
+npm run dist:win       # package a Windows .exe installer
+```
+
+## Releases
+
+Pushing a version tag (`v*.*.*`) triggers [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds macOS, Linux, and Windows packages on their native GitHub-hosted runners and publishes them to the repo's [Releases](../../releases) page.
+
+```bash
+npm version patch   # bumps package.json and creates a git tag, e.g. v0.1.1
+git push --follow-tags
 ```
 
 ## Project structure
