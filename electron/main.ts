@@ -1,4 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, type MenuItemConstructorOptions } from "electron";
+import { getFonts2 } from "font-list";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -126,6 +127,22 @@ ipcMain.handle("file:saveAs", async (_event, content: string) => {
 
 ipcMain.on("window:setTitle", (event, title: string) => {
   BrowserWindow.fromWebContents(event.sender)?.setTitle(title);
+});
+
+let cachedFonts: { name: string; monospace: boolean }[] | undefined;
+
+ipcMain.handle("fonts:list", async () => {
+  if (cachedFonts) return cachedFonts;
+
+  const fonts = await getFonts2({ disableQuoting: true });
+  const byName = new Map<string, boolean>();
+  for (const f of fonts) {
+    // a family can list multiple weights/styles; treat it as monospace if any variant is
+    byName.set(f.familyName, byName.get(f.familyName) || f.monospace);
+  }
+
+  cachedFonts = [...byName.entries()].map(([name, monospace]) => ({ name, monospace }));
+  return cachedFonts;
 });
 
 app.whenReady().then(() => {
