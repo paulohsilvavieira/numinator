@@ -21,9 +21,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
-      - run: npm ci
+      # not `npm ci`: electron-builder's win/mac-only optionalDependencies
+      # are platform-restricted and get dropped from package-lock.json
+      # whenever it's generated on a different OS, so a strict lockfile
+      # match fails on the other two runners in this matrix.
+      - run: npm install
 
       - run: npm run build
 
