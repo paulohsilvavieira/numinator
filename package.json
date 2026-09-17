@@ -1,14 +1,17 @@
 {
   "name": "numinator",
   "productName": "Numinator",
+  "description": "A notational calculator: a text editor where every line can be a calculation.",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "dist:linux": "npm run build && electron-builder --linux AppImage",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:win": "npm run build && electron-builder --win",
     "lint": "oxlint",
     "preview": "vite preview"
   },
@@ -17,6 +20,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
+  "author": "Paulo Henrique",
   "build": {
     "appId": "com.numinator.app",
     "productName": "Numinator",
@@ -25,9 +29,19 @@
     "directories": {
       "output": "release"
     },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.utilities"
+    },
+    "win": {
+      "target": ["nsis"]
+    },
     "linux": {
       "target": ["AppImage"],
       "category": "Utility"
+    },
+    "publish": {
+      "provider": "github"
     }
   },
   "devDependencies": {
