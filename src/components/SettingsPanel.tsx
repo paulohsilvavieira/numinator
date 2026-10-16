@@ -111,6 +111,20 @@ function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProps) {
             <option value=''>None (11000)</option>
           </select>
         </label>
+        <label className='settings-row'>
+          <span>Date format</span>
+          <select
+            value={settings.date}
+            onChange={(e) =>
+              onChange({ ...settings, date: e.target.value as Settings['date'] })
+            }
+          >
+            <option value='system'>System (Oct 30, 2026)</option>
+            <option value='dmy'>DD/MM/YYYY (30/10/2026)</option>
+            <option value='mdy'>MM/DD/YYYY (10/30/2026)</option>
+            <option value='ymd'>YYYY-MM-DD (2026-10-30)</option>
+          </select>
+        </label>
       </div>
     </div>
   );

@@ -15,8 +15,8 @@ function App() {
   const { textareaRef, highlightRef, resultsRef, syncScroll } = useSyncedScroll();
 
   const results = useMemo(
-    () => runDocument(text, { decimal: settings.decimal, thousands: settings.thousands }),
-    [text, settings.decimal, settings.thousands],
+    () => runDocument(text, { decimal: settings.decimal, thousands: settings.thousands, date: settings.date }),
+    [text, settings.decimal, settings.thousands, settings.date],
   );
 
   return (

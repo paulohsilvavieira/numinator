@@ -4,6 +4,13 @@ export interface NumberFormat {
   thousands: "," | "." | " " | "";
 }
 
+/** "system" uses the OS locale with a short month name ("Oct 30, 2026") */
+export type DateFormat = "system" | "dmy" | "mdy" | "ymd";
+
+export interface FormatOptions extends NumberFormat {
+  date?: DateFormat;
+}
+
 export const DEFAULT_NUMBER_FORMAT: NumberFormat = { decimal: ".", thousands: "," };
 
 // Reads "1,234.56", "1.234,56", "1,5" or "11000,00". With both separators the
@@ -37,4 +44,23 @@ export function parseNumber(text: string, format: NumberFormat = DEFAULT_NUMBER_
 export function formatNumber(value: number, format: NumberFormat, minFraction: number, maxFraction: number): string {
   const text = value.toLocaleString("en-US", { minimumFractionDigits: minFraction, maximumFractionDigits: maxFraction });
   return text.replace(/[.,]/g, (c) => (c === "," ? format.thousands : format.decimal));
+}
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+export function formatDate(epochMs: number, format: DateFormat = "system"): string {
+  const d = new Date(epochMs);
+  const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0 || d.getSeconds() !== 0;
+
+  if (format === "system") {
+    return hasTime
+      ? d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+      : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  }
+
+  const day = pad(d.getDate());
+  const month = pad(d.getMonth() + 1);
+  const year = String(d.getFullYear());
+  const text = format === "dmy" ? `${day}/${month}/${year}` : format === "mdy" ? `${month}/${day}/${year}` : `${year}-${month}-${day}`;
+  return hasTime ? `${text} ${pad(d.getHours())}:${pad(d.getMinutes())}` : text;
 }

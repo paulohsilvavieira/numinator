@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 
-import type { NumberFormat } from "./engine";
+import type { DateFormat, NumberFormat } from "./engine";
 
 export interface Settings extends NumberFormat {
+  date: DateFormat;
   fontFamily: string;
   fontSize: number;
 }
@@ -12,6 +13,7 @@ const DEFAULT_SETTINGS: Settings = {
   fontSize: 15,
   decimal: ".",
   thousands: ",",
+  date: "system",
 };
 
 const STORAGE_KEY = "numinator.settings";

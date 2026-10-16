@@ -2,10 +2,10 @@ import { Parser, ParseError } from "./parser";
 import type { Value } from "./evaluator";
 import { evaluate, EvalError, blockWasUsed, setBlockSource } from "./evaluator";
 import { findUnit } from "./units";
-import type { NumberFormat } from "./numberFormat";
-import { DEFAULT_NUMBER_FORMAT, formatNumber } from "./numberFormat";
+import type { FormatOptions, NumberFormat, DateFormat } from "./numberFormat";
+import { DEFAULT_NUMBER_FORMAT, formatDate, formatNumber } from "./numberFormat";
 
-export type { NumberFormat };
+export type { FormatOptions, NumberFormat, DateFormat };
 
 export interface LineResult {
   input: string;
@@ -13,17 +13,11 @@ export interface LineResult {
   error?: string;
 }
 
-export function formatValue(v: Value, format: NumberFormat = DEFAULT_NUMBER_FORMAT): string {
+export function formatValue(v: Value, format: FormatOptions = DEFAULT_NUMBER_FORMAT): string {
   if (v.isBoolean) return v.value ? "true" : "false";
   if (v.isString) return `"${v.stringValue}"`;
 
-  if (v.isDate) {
-    const d = new Date(v.epochMs!);
-    const isMidnight = d.getHours() === 0 && d.getMinutes() === 0 && d.getSeconds() === 0;
-    return isMidnight
-      ? d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
-      : d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-  }
+  if (v.isDate) return formatDate(v.epochMs!, format.date);
 
   const currency = v.unitId ? findUnit(v.unitId) : undefined;
   if (currency?.symbol && currency.money && !v.isPercent) {
@@ -39,7 +33,7 @@ export function formatValue(v: Value, format: NumberFormat = DEFAULT_NUMBER_FORM
   return text;
 }
 
-export function runDocument(text: string, format: NumberFormat = DEFAULT_NUMBER_FORMAT): LineResult[] {
+export function runDocument(text: string, format: FormatOptions = DEFAULT_NUMBER_FORMAT): LineResult[] {
   const scope = new Map<string, Value>();
   const results: LineResult[] = [];
   let prev: Value | undefined;
