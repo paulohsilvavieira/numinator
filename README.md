@@ -53,7 +53,7 @@ These links always point to the [latest release](https://github.com/paulohsilvav
 | Platform | Download |
 | --- | --- |
 | Linux (x86_64) | [Numinator-linux-x86_64.AppImage](https://github.com/paulohsilvavieira/numinator/releases/latest/download/Numinator-linux-x86_64.AppImage) (portable; `chmod +x` and run) |
-| macOS (Apple Silicon) | [Numinator-mac-arm64.dmg](https://github.com/paulohsilvavieira/numinator/releases/latest/download/Numinator-mac-arm64.dmg) or [.zip](https://github.com/paulohsilvavieira/numinator/releases/latest/download/Numinator-mac-arm64.zip) |
+| macOS (Intel and Apple Silicon) | [Numinator-mac-universal.dmg](https://github.com/paulohsilvavieira/numinator/releases/latest/download/Numinator-mac-universal.dmg) or [.zip](https://github.com/paulohsilvavieira/numinator/releases/latest/download/Numinator-mac-universal.zip) |
 | Windows (x64) | [Numinator-windows-x64-Setup.exe](https://github.com/paulohsilvavieira/numinator/releases/latest/download/Numinator-windows-x64-Setup.exe) |
 
 ## Development
