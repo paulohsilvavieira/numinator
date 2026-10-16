@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
-export interface Settings {
+import type { NumberFormat } from "./engine";
+
+export interface Settings extends NumberFormat {
   fontFamily: string;
   fontSize: number;
 }
@@ -8,6 +10,8 @@ export interface Settings {
 const DEFAULT_SETTINGS: Settings = {
   fontFamily: "ui-monospace",
   fontSize: 15,
+  decimal: ".",
+  thousands: ",",
 };
 
 const STORAGE_KEY = "numinator.settings";

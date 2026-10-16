@@ -1,6 +1,6 @@
 import type { CompareOp, Node } from "./ast";
 import type { UnitDef } from "./units";
-import { convert, findUnit } from "./units";
+import { convert, customUnit, findUnit } from "./units";
 
 export interface Value {
   value: number;
@@ -16,16 +16,25 @@ export interface Value {
 export class EvalError extends Error {}
 
 function unitOf(unitId: string | undefined): UnitDef | undefined {
-  return unitId ? findUnit(unitId) : undefined;
+  return unitId ? (findUnit(unitId) ?? customUnit(unitId)) : undefined;
 }
 
 function toFraction(v: Value): number {
   return v.isPercent ? v.value / 100 : v.value;
 }
 
+// currencies show their symbol (R$) instead of the internal id (BRL)
+function unitLabel(u: UnitDef): string {
+  return u.symbol ?? u.id;
+}
+
+function categoryLabel(u: UnitDef): string {
+  return u.category.split(":")[0];
+}
+
 function sameCategoryOrThrow(a: UnitDef, b: UnitDef) {
   if (a.category !== b.category) {
-    throw new EvalError(`Cannot combine "${a.id}" (${a.category}) with "${b.id}" (${b.category})`);
+    throw new EvalError(`Cannot combine "${unitLabel(a)}" (${categoryLabel(a)}) with "${unitLabel(b)}" (${categoryLabel(b)})`);
   }
 }
 
@@ -73,6 +82,70 @@ function evaluateDateBinary(op: "+" | "-", left: Value, right: Value): Value {
   return { value: 0, isDate: true, epochMs: applyDurationToDate(right.epochMs!, left, 1) };
 }
 
+const CONSTANTS: Record<string, number> = { pi: Math.PI, e: Math.E };
+
+function factorial(n: number): number {
+  if (!Number.isInteger(n) || n < 0) throw new EvalError("fact needs a non-negative whole number");
+  if (n > 170) return Infinity;
+  let r = 1;
+  for (let i = 2; i <= n; i++) r *= i;
+  return r;
+}
+
+// functions that return a quantity of the same kind keep the unit; the rest are plain numbers
+const UNIT_KEEPING: Record<string, (x: number) => number> = {
+  abs: Math.abs,
+  round: Math.round,
+  ceil: Math.ceil,
+  floor: Math.floor,
+};
+
+const PLAIN_FUNCTIONS: Record<string, (x: number) => number> = {
+  sqrt: Math.sqrt,
+  cbrt: Math.cbrt,
+  ln: Math.log,
+  log: Math.log10,
+  log2: Math.log2,
+  sin: Math.sin,
+  cos: Math.cos,
+  tan: Math.tan,
+  asin: Math.asin,
+  acos: Math.acos,
+  atan: Math.atan,
+  fact: factorial,
+};
+
+function callFunction(name: string, arg: Value): Value {
+  if (arg.isDate || arg.isString || arg.isBoolean) throw new EvalError(`${name}() needs a number`);
+  const keep = UNIT_KEEPING[name];
+  if (keep) return { ...arg, value: keep(arg.value) };
+  return { value: PLAIN_FUNCTIONS[name](toFraction(arg)) };
+}
+
+// The lines of the current block (up to the previous blank line or # heading),
+// supplied by runDocument so "sum" and "average" can see them.
+let blockSource: (() => Value[]) | undefined;
+let usedBlock = false;
+
+export function setBlockSource(source: (() => Value[]) | undefined) {
+  blockSource = source;
+  usedBlock = false;
+}
+
+export function blockWasUsed(): boolean {
+  return usedBlock;
+}
+
+const AGGREGATES = new Set(["sum", "total", "average", "avg"]);
+
+function aggregate(name: string): Value {
+  const values = blockSource?.() ?? [];
+  if (values.length === 0) throw new EvalError(`Nothing to ${name} above`);
+  usedBlock = true;
+  const total = values.reduce((acc, v) => evaluateBinary("+", acc, v));
+  return name === "average" || name === "avg" ? evaluateBinary("/", total, { value: values.length }) : total;
+}
+
 export function evaluate(node: Node, scope: Map<string, Value>): Value {
   switch (node.kind) {
     case "number":
@@ -103,6 +176,8 @@ export function evaluate(node: Node, scope: Map<string, Value>): Value {
       const builtin = BUILTIN_DATES[lower];
       if (builtin) return builtin();
       const existing = scope.get(lower);
+      if (!existing && AGGREGATES.has(lower)) return aggregate(lower);
+      if (!existing && lower in CONSTANTS) return { value: CONSTANTS[lower] };
       if (!existing) {
         throw new EvalError(`Unknown variable "${node.name}"`);
       }
@@ -130,9 +205,42 @@ export function evaluate(node: Node, scope: Map<string, Value>): Value {
     case "binary":
       return evaluateBinary(node.op, evaluate(node.left, scope), evaluate(node.right, scope));
 
+    case "call":
+      return callFunction(node.name, evaluate(node.arg, scope));
+
+    case "percentChange": {
+      const percent = evaluate(node.percent, scope);
+      const base = evaluate(node.base, scope);
+      const delta = base.value * (percent.value / 100);
+      return { ...base, value: node.op === "on" ? base.value + delta : base.value - delta };
+    }
+
+    case "asPercent": {
+      const part = evaluate(node.part, scope);
+      const whole = evaluate(node.whole, scope);
+      return { value: (numericRatio(part, whole)) * 100, isPercent: true };
+    }
+
+    case "whatBase": {
+      const part = evaluate(node.part, scope);
+      const percent = evaluate(node.percent, scope);
+      return { ...part, value: part.value / (percent.value / 100) };
+    }
+
     case "compare":
       return evaluateCompare(node.op, evaluate(node.left, scope), evaluate(node.right, scope));
   }
+}
+
+// part / whole, converting when both carry units of the same category
+function numericRatio(part: Value, whole: Value): number {
+  const partUnit = unitOf(part.unitId);
+  const wholeUnit = unitOf(whole.unitId);
+  if (partUnit && wholeUnit) {
+    sameCategoryOrThrow(partUnit, wholeUnit);
+    return part.value / convert(whole.value, wholeUnit, partUnit);
+  }
+  return part.value / whole.value;
 }
 
 function toComparableNumber(v: Value): number {
@@ -238,8 +346,16 @@ function evaluateBinary(op: "+" | "-" | "*" | "/" | "^" | "mod", left: Value, ri
   if (op === "*" || op === "/") {
     const leftUnit = unitOf(left.unitId);
     const rightUnit = unitOf(right.unitId);
+    if (leftUnit && rightUnit && op === "/") {
+      // like the other operators, the result keeps the left unit: R$50 / R$2 = R$25
+      sameCategoryOrThrow(leftUnit, rightUnit);
+      return { value: left.value / convert(right.value, rightUnit, leftUnit), unitId: leftUnit.id };
+    }
     if (leftUnit && rightUnit) {
-      throw new EvalError(`Cannot ${op === "*" ? "multiply" : "divide"} two units ("${leftUnit.id}" and "${rightUnit.id}")`);
+      // no compound units: the right side is converted to the left unit, the
+      // values are multiplied and the result keeps the left unit (R$5 * R$2 = R$10)
+      sameCategoryOrThrow(leftUnit, rightUnit);
+      return { value: left.value * convert(right.value, rightUnit, leftUnit), unitId: leftUnit.id };
     }
     const l = toFraction(left);
     const r = toFraction(right);

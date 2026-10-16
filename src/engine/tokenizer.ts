@@ -1,7 +1,11 @@
+import type { NumberFormat } from "./numberFormat";
+import { DEFAULT_NUMBER_FORMAT, parseNumber } from "./numberFormat";
+
 export type TokenType =
   | "number"
   | "ident"
   | "string"
+  | "currency"
   | "+"
   | "-"
   | "*"
@@ -41,7 +45,9 @@ const SYMBOLS: Record<string, TokenType> = {
   ")": ")",
 };
 
-export function tokenize(input: string): Token[] {
+const CURRENCY_SYMBOLS = ["$", "€", "£", "¥"];
+
+export function tokenize(input: string, format: NumberFormat = DEFAULT_NUMBER_FORMAT): Token[] {
   const tokens: Token[] = [];
   let i = 0;
   const n = input.length;
@@ -54,15 +60,27 @@ export function tokenize(input: string): Token[] {
       continue;
     }
 
-    if (/[0-9]/.test(ch) || (ch === "." && /[0-9]/.test(input[i + 1] ?? ""))) {
+    if (/[0-9]/.test(ch) || (/[.,]/.test(ch) && /[0-9]/.test(input[i + 1] ?? ""))) {
       const start = i;
-      while (i < n && /[0-9,]/.test(input[i])) i++;
-      if (input[i] === ".") {
+      // a separator belongs to the number only when a digit follows it, so
+      // "5." or "1, 2" don't swallow the trailing punctuation
+      while (i < n && (/[0-9]/.test(input[i]) || (/[.,]/.test(input[i]) && /[0-9]/.test(input[i + 1] ?? "")))) i++;
+      const text = input.slice(start, i);
+      let value = parseNumber(text, format);
+      // "5k" / "2M" scale suffix, only when it stands alone ("5mm" and "5 MB" stay units)
+      if (/[kKM]/.test(input[i] ?? "") && !/[a-zA-Z_]/.test(input[i + 1] ?? "")) {
+        value *= input[i] === "M" ? 1e6 : 1e3;
         i++;
-        while (i < n && /[0-9]/.test(input[i])) i++;
       }
-      const raw = input.slice(start, i).replace(/,/g, "");
-      tokens.push({ type: "number", text: input.slice(start, i), value: parseFloat(raw), pos: start, end: i });
+      tokens.push({ type: "number", text: input.slice(start, i), value, pos: start, end: i });
+      continue;
+    }
+
+    // currency symbols are checked before identifiers so "R$" isn't read as the word "R"
+    const symbol = /^R\$/i.test(input.slice(i, i + 2)) ? input.slice(i, i + 2) : CURRENCY_SYMBOLS.includes(ch) ? ch : "";
+    if (symbol) {
+      tokens.push({ type: "currency", text: symbol, pos: i, end: i + symbol.length });
+      i += symbol.length;
       continue;
     }
 

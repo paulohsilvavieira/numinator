@@ -6,6 +6,10 @@ export interface UnitDef {
   category: string;
   ratio: number;
   aliases: string[];
+  /** currencies only: shown as "<symbol> 1,234.50" instead of "1,234.5 <id>" */
+  symbol?: string;
+  /** currencies only: the separators and decimal places that currency is written with */
+  money?: { decimal: "." | ","; thousands: "," | "." | " "; digits: number };
 }
 
 const catalogue: UnitDef[] = [
@@ -45,6 +49,14 @@ const catalogue: UnitDef[] = [
   { id: "kib", category: "data", ratio: 1024, aliases: ["kib", "kibibyte", "kibibytes"] },
   { id: "mib", category: "data", ratio: 1024 ** 2, aliases: ["mib", "mebibyte", "mebibytes"] },
   { id: "gib", category: "data", ratio: 1024 ** 3, aliases: ["gib", "gibibyte", "gibibytes"] },
+
+  // currencies: each is its own category (no exchange rates), so mixing two
+  // currencies is an error instead of a silently wrong sum
+  { id: "BRL", category: "currency:BRL", ratio: 1, symbol: "R$", money: { decimal: ",", thousands: ".", digits: 2 }, aliases: ["r$", "brl", "real", "reais"] },
+  { id: "USD", category: "currency:USD", ratio: 1, symbol: "$", money: { decimal: ".", thousands: ",", digits: 2 }, aliases: ["$", "usd", "dollar", "dollars"] },
+  { id: "EUR", category: "currency:EUR", ratio: 1, symbol: "€", money: { decimal: ",", thousands: ".", digits: 2 }, aliases: ["€", "eur", "euro", "euros"] },
+  { id: "GBP", category: "currency:GBP", ratio: 1, symbol: "£", money: { decimal: ".", thousands: ",", digits: 2 }, aliases: ["£", "gbp"] },
+  { id: "JPY", category: "currency:JPY", ratio: 1, symbol: "¥", money: { decimal: ".", thousands: ",", digits: 0 }, aliases: ["¥", "jpy", "yen"] },
 ];
 
 const aliasToUnit = new Map<string, UnitDef>();
@@ -63,4 +75,11 @@ export function convert(value: number, from: UnitDef, to: UnitDef): number {
     throw new Error(`Cannot convert ${from.category} to ${to.category}`);
   }
   return (value * from.ratio) / to.ratio;
+}
+
+// Any word the catalogue doesn't know (e.g. "BTCsa") can be used as a unit of
+// its own: it only combines with itself, so "1 BTCsa + 2 BTCsa" is "3 BTCsa"
+// and mixing it with another unit is an error.
+export function customUnit(name: string): UnitDef {
+  return { id: name, category: `custom:${name.toLowerCase()}`, ratio: 1, aliases: [] };
 }

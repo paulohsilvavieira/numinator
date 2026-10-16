@@ -1,5 +1,6 @@
 import { tokenize } from "./engine/tokenizer";
 import { findUnit } from "./engine/units";
+import { FUNCTION_NAMES } from "./engine/parser";
 
 const KEYWORDS = new Set([
   "in",
@@ -19,6 +20,22 @@ const KEYWORDS = new Set([
   "now",
   "tomorrow",
   "yesterday",
+  "as",
+  "is",
+  "on",
+  "off",
+  "what",
+  "sum",
+  "total",
+  "average",
+  "avg",
+  "pi",
+  "e",
+  "thousand",
+  "million",
+  "billion",
+  "trillion",
+  ...FUNCTION_NAMES,
 ]);
 
 function escapeHtml(s: string): string {
@@ -37,6 +54,7 @@ export function highlightLine(line: string): string {
   let out = "";
   let last = 0;
 
+  let prevType = "";
   for (const tok of tokens) {
     if (tok.type === "eof") break;
     out += escapeHtml(line.slice(last, tok.pos));
@@ -47,10 +65,13 @@ export function highlightLine(line: string): string {
 
     if (tok.type === "number") {
       out += `<span class="tok-number">${raw}</span>`;
+    } else if (tok.type === "currency") {
+      out += `<span class="tok-unit">${raw}</span>`;
     } else if (tok.type === "string") {
       out += `<span class="tok-string">${raw}</span>`;
     } else if (tok.type === "ident") {
-      if (findUnit(tok.text)) {
+      // a word right after a number is a unit, even an unknown one ("3 BTCsa")
+      if (findUnit(tok.text) || (prevType === "number" && !KEYWORDS.has(tok.text.toLowerCase()))) {
         out += `<span class="tok-unit">${raw}</span>`;
       } else if (KEYWORDS.has(tok.text.toLowerCase())) {
         out += `<span class="tok-keyword">${raw}</span>`;
@@ -62,6 +83,7 @@ export function highlightLine(line: string): string {
     }
 
     last = tok.end;
+    prevType = tok.type;
   }
 
   out += escapeHtml(line.slice(last));

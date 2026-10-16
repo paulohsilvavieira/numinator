@@ -10,4 +10,8 @@ export type Node =
   | { kind: "unary"; op: "-"; expr: Node }
   | { kind: "ident"; name: string }
   | { kind: "assign"; name: string; expr: Node }
-  | { kind: "convert"; expr: Node; unitId: string };
+  | { kind: "convert"; expr: Node; unitId: string }
+  | { kind: "call"; name: string; arg: Node }
+  | { kind: "percentChange"; op: "on" | "off"; percent: Node; base: Node }
+  | { kind: "asPercent"; part: Node; whole: Node }
+  | { kind: "whatBase"; part: Node; percent: Node };

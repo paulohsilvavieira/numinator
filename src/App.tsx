@@ -14,7 +14,10 @@ function App() {
   const { settings, setSettings } = useSettings();
   const { textareaRef, highlightRef, resultsRef, syncScroll } = useSyncedScroll();
 
-  const results = useMemo(() => runDocument(text), [text]);
+  const results = useMemo(
+    () => runDocument(text, { decimal: settings.decimal, thousands: settings.thousands }),
+    [text, settings.decimal, settings.thousands],
+  );
 
   return (
     <div

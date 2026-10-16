@@ -75,6 +75,42 @@ function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProps) {
             }
           />
         </label>
+        <label className='settings-row'>
+          <span>Decimal separator</span>
+          <select
+            value={settings.decimal}
+            onChange={(e) => {
+              const decimal = e.target.value as Settings['decimal'];
+              // the two marks can't be the same character
+              const thousands =
+                settings.thousands === decimal
+                  ? settings.decimal
+                  : settings.thousands;
+              onChange({ ...settings, decimal, thousands });
+            }}
+          >
+            <option value='.'>Dot (1.5)</option>
+            <option value=','>Comma (1,5)</option>
+          </select>
+        </label>
+
+        <label className='settings-row'>
+          <span>Thousands separator</span>
+          <select
+            value={settings.thousands}
+            onChange={(e) =>
+              onChange({
+                ...settings,
+                thousands: e.target.value as Settings['thousands'],
+              })
+            }
+          >
+            {settings.decimal !== ',' && <option value=','>Comma (11,000)</option>}
+            {settings.decimal !== '.' && <option value='.'>Dot (11.000)</option>}
+            <option value=' '>Space (11 000)</option>
+            <option value=''>None (11000)</option>
+          </select>
+        </label>
       </div>
     </div>
   );

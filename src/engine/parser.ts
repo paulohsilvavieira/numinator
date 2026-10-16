@@ -2,6 +2,7 @@ import type { Token, TokenType } from "./tokenizer";
 import { tokenize } from "./tokenizer";
 import type { CompareOp, Node } from "./ast";
 import { findUnit } from "./units";
+import type { NumberFormat } from "./numberFormat";
 
 const COMPARE_TOKENS: TokenType[] = ["=", "==", "===", "!=", "!==", "<", "<=", ">", ">="];
 
@@ -16,20 +17,35 @@ const WORD_OPERATORS: Record<string, "+" | "-" | "*" | "/" | "mod"> = {
   modulo: "mod",
 };
 
+// words with a meaning of their own; anything else after a number is a custom unit
+const RESERVED_WORDS = new Set([
+  "in", "to", "of", "by", "mod", "modulo", "plus", "minus", "times", "multiplied", "divided", "over",
+  "prev", "today", "now", "tomorrow", "yesterday",
+  "as", "is", "on", "off", "pi", "e",
+  "thousand", "million", "billion", "trillion",
+]);
+
+const SCALE_WORDS: Record<string, number> = { thousand: 1e3, million: 1e6, billion: 1e9, trillion: 1e12 };
+
+export const FUNCTION_NAMES = new Set([
+  "sqrt", "cbrt", "abs", "round", "ceil", "floor", "ln", "log", "log2",
+  "sin", "cos", "tan", "asin", "acos", "atan", "fact",
+]);
+
 export class ParseError extends Error {}
 
 export class Parser {
   private tokens: Token[];
   private pos = 0;
 
-  constructor(input: string) {
-    this.tokens = tokenize(input);
+  constructor(input: string, format?: NumberFormat) {
+    this.tokens = tokenize(input, format);
   }
 
-  static parseLine(input: string): Node | null {
+  static parseLine(input: string, format?: NumberFormat): Node | null {
     const trimmed = input.trim();
     if (trimmed === "") return null;
-    const parser = new Parser(input);
+    const parser = new Parser(input, format);
     const node = parser.parseStatement();
     parser.expect("eof");
     return node;
@@ -86,8 +102,23 @@ export class Parser {
 
   private parseConversion(): Node {
     let node = this.parseAdditive();
+    if (this.matchWord("as")) {
+      // "30 as a % of 50"
+      this.matchWord("a");
+      this.expect("%");
+      if (!this.matchWord("of")) throw new ParseError('Expected "of" after "as a %"');
+      return { kind: "asPercent", part: node, whole: this.parseAdditive() };
+    }
+    if (this.matchWord("is")) {
+      // "20 is 5% of what"
+      const percent = this.parsePostfix();
+      if (percent.kind !== "percent" || !this.matchWord("of") || !this.matchWord("what")) {
+        throw new ParseError('Expected a percentage like "20 is 5% of what"');
+      }
+      return { kind: "whatBase", part: node, percent };
+    }
     if (this.matchWord("in", "to")) {
-      const unitTok = this.next();
+      const unitTok = this.next(); // a word ("usd") or a currency symbol ("$")
       const unit = findUnit(unitTok.text);
       if (!unit) throw new ParseError(`Unknown unit "${unitTok.text}"`);
       node = { kind: "convert", expr: node, unitId: unit.id };
@@ -166,23 +197,61 @@ export class Parser {
   }
 
   private parsePostfix(): Node {
-    let node = this.parsePrimary();
+    let node: Node;
+    if (this.peek().type === "currency") {
+      // prefix currency: "R$ 1.234,50"
+      const unit = this.currencyUnit(this.next());
+      node = { kind: "unit", expr: this.applyScale(this.parsePrimary()), unitId: unit };
+    } else {
+      node = this.applyScale(this.parsePrimary());
+    }
 
     if (this.peek().type === "%") {
       this.pos++;
       node = { kind: "percent", expr: node };
+      // "5% on 30" / "5% off 30"
+      const word = this.peek();
+      if (word.type === "ident" && (word.text.toLowerCase() === "on" || word.text.toLowerCase() === "off")) {
+        this.pos++;
+        return { kind: "percentChange", op: word.text.toLowerCase() as "on" | "off", percent: node, base: this.parseUnary() };
+      }
     }
 
     const tok = this.peek();
-    if (tok.type === "ident") {
+    if (tok.type === "currency" && node.kind !== "unit") {
+      this.pos++;
+      node = { kind: "unit", expr: node, unitId: this.currencyUnit(tok) };
+    } else if (tok.type === "ident" && node.kind !== "unit") {
       const unit = findUnit(tok.text);
       if (unit) {
         this.pos++;
         node = { kind: "unit", expr: node, unitId: unit.id };
+      } else if (node.kind === "number" && !RESERVED_WORDS.has(tok.text.toLowerCase())) {
+        this.pos++;
+        node = { kind: "unit", expr: node, unitId: tok.text };
       }
     }
 
     return node;
+  }
+
+  // "3 million" -> 3000000
+  private applyScale(node: Node): Node {
+    const tok = this.peek();
+    if (node.kind === "number" && tok.type === "ident") {
+      const scale = SCALE_WORDS[tok.text.toLowerCase()];
+      if (scale) {
+        this.pos++;
+        return { kind: "number", value: node.value * scale };
+      }
+    }
+    return node;
+  }
+
+  private currencyUnit(tok: Token): string {
+    const unit = findUnit(tok.text);
+    if (!unit) throw new ParseError(`Unknown currency "${tok.text}"`);
+    return unit.id;
   }
 
   private parsePrimary(): Node {
@@ -203,6 +272,13 @@ export class Parser {
     if (tok.type === "string") {
       this.pos++;
       return { kind: "string", value: tok.text };
+    }
+
+    if (tok.type === "ident" && FUNCTION_NAMES.has(tok.text.toLowerCase()) && this.peek(1).type === "(") {
+      this.pos += 2;
+      const arg = this.parseComparison();
+      this.expect(")");
+      return { kind: "call", name: tok.text.toLowerCase(), arg };
     }
 
     if (tok.type === "ident") {
