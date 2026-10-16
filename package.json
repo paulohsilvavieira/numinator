@@ -3,7 +3,7 @@
   "productName": "Numinator",
   "description": "A notational calculator: a text editor where every line can be a calculation.",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
