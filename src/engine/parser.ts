@@ -221,7 +221,7 @@ export class Parser {
     if (tok.type === "currency" && node.kind !== "unit") {
       this.pos++;
       node = { kind: "unit", expr: node, unitId: this.currencyUnit(tok) };
-    } else if (tok.type === "ident" && node.kind !== "unit") {
+    } else if (tok.type === "ident" && node.kind !== "unit" && !this.isConversionKeyword(tok)) {
       const unit = findUnit(tok.text);
       if (unit) {
         this.pos++;
@@ -233,6 +233,14 @@ export class Parser {
     }
 
     return node;
+  }
+
+  // "x in miles": "in" followed by another unit is a conversion, not inches
+  private isConversionKeyword(tok: Token): boolean {
+    const word = tok.text.toLowerCase();
+    if (word !== "in" && word !== "to") return false;
+    const next = this.peek(1);
+    return (next.type === "ident" || next.type === "currency") && !!findUnit(next.text);
   }
 
   // "3 million" -> 3000000
