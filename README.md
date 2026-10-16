@@ -12,21 +12,30 @@ x = 10 km            10 km
 x + 500 m            10.5 km
 x in miles           6.213712 mi
 prev * 2             12.427424 mi
+R$ 1.234,50 + R$ 10  R$ 1.244,50
+5% off 80            76
+sqrt(16) + 2 * pi    10.283185
 today + 2 weeks      Oct 1, 2026
-1 + 1 = 2             true
+1 + 1 = 2            true
 ```
 
 ## Features
 
 - Arithmetic with `+ - * / ^ mod`, parentheses, and word operators (`plus`, `times`, `divided by`...)
 - Unit conversion (length, mass, time, digital data) via `in` / `to`
-- Percentages, including "20% of 50" and "50 + 20%"
+- Custom units: any unknown word after a number is a unit of its own (`1 BTCsa + 2 BTCsa` = `3 BTCsa`); different units can't be mixed
+- Money: `R$`, `$`, `€`, `£`, `¥` (prefix or suffix, or `usd`, `brl`...). Results follow each currency's own convention (`R$ 1.234,50`, `$ 1,234.50`). Different currencies can't be mixed (no exchange rates)
+- Numbers with a decimal comma or dot (`1,5` = `1.5`, `11000,00` = `11.000,00`); decimal and thousands separators are configurable in Settings
+- Scales: `5k`, `2M`, `3 million`, `1.5 billion`
+- Percentages: `20% of 50`, `50 + 20%`, `5% on 30`, `5% off 30`, `30 as a % of 50`, `20 is 5% of what`
+- Functions `sqrt cbrt abs round ceil floor ln log log2 sin cos tan asin acos atan fact` and constants `pi`, `e`
+- `sum`/`total` and `average`/`avg` of the lines above (up to the previous blank line or `#` heading)
 - Variables (`x = 10`) and `prev` (previous line's result)
 - Dates: `today`, `now`, `tomorrow`, `yesterday`, and date arithmetic (`today + 2 weeks`)
 - Comparisons: `==`, `===`, `!=`, `!==`, `<`, `<=`, `>`, `>=`, returning `true`/`false`
 - Syntax highlighting in the editor
 - Native file save/open (`.numi` files) via the OS file dialogs and the app's File menu
-- Configurable editor font/size
+- Configurable editor font/size and number separators
 
 ## Development
 
