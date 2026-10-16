@@ -48,13 +48,13 @@ today + 2 weeks      Oct 1, 2026
 
 ## Download
 
-Latest release: **v0.2.2** — [all releases and release notes](https://github.com/paulohsilvavieira/numinator/releases/latest)
+These links always point to the [latest release](https://github.com/paulohsilvavieira/numinator/releases/latest) (see there for release notes and older versions).
 
 | Platform | Download |
 | --- | --- |
-| Linux | [Numinator-0.2.2.AppImage](https://github.com/paulohsilvavieira/numinator/releases/download/v0.2.2/Numinator-0.2.2.AppImage) (portable; `chmod +x` and run) |
-| macOS (Apple Silicon) | [Numinator-0.2.2-arm64.dmg](https://github.com/paulohsilvavieira/numinator/releases/download/v0.2.2/Numinator-0.2.2-arm64.dmg) or [.zip](https://github.com/paulohsilvavieira/numinator/releases/download/v0.2.2/Numinator-0.2.2-arm64-mac.zip) |
-| Windows | [Numinator-Setup-0.2.2.exe](https://github.com/paulohsilvavieira/numinator/releases/download/v0.2.2/Numinator-Setup-0.2.2.exe) |
+| Linux (x86_64) | [Numinator-linux-x86_64.AppImage](https://github.com/paulohsilvavieira/numinator/releases/latest/download/Numinator-linux-x86_64.AppImage) (portable; `chmod +x` and run) |
+| macOS (Apple Silicon) | [Numinator-mac-arm64.dmg](https://github.com/paulohsilvavieira/numinator/releases/latest/download/Numinator-mac-arm64.dmg) or [.zip](https://github.com/paulohsilvavieira/numinator/releases/latest/download/Numinator-mac-arm64.zip) |
+| Windows (x64) | [Numinator-windows-x64-Setup.exe](https://github.com/paulohsilvavieira/numinator/releases/latest/download/Numinator-windows-x64-Setup.exe) |
 
 ## Development
 
