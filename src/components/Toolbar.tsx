@@ -1,4 +1,5 @@
 import { FileText } from "lucide-react";
+import { useT } from "../i18n/translate";
 
 interface ToolbarProps {
   fileName: string | null;
@@ -6,12 +7,13 @@ interface ToolbarProps {
 }
 
 function Toolbar({ fileName, isDirty }: ToolbarProps) {
+  const t = useT();
   return (
     <div className="numi-toolbar">
       <span className="numi-filename">
         <FileText size={14} className="numi-file-icon" />
-        {fileName ?? "Untitled"}
-        {isDirty && <span className="numi-dirty-dot" title="Unsaved changes" />}
+        {fileName ?? t("untitled")}
+        {isDirty && <span className="numi-dirty-dot" title={t("unsavedChanges")} />}
       </span>
     </div>
   );

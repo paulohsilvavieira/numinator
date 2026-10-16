@@ -3,6 +3,8 @@ import { getFonts2 } from "font-list";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { languageFromLocale, MESSAGES } from "../src/i18n/messages";
+import type { Language, MessageKey } from "../src/i18n/messages";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -12,53 +14,62 @@ const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 // relative path in both dev and the built app.
 const ICON_PATH = path.join(__dirname, "../public/icon.png");
 
-const FILE_FILTERS = [
-  { name: "Numinator documents", extensions: ["numi", "txt"] },
-  { name: "All files", extensions: ["*"] },
+// until the renderer reports the user's choice, follow the OS language
+let language: Language = languageFromLocale(app.getLocale());
+const t = (key: MessageKey) => MESSAGES[language][key];
+
+const fileFilters = () => [
+  { name: t("documentsFilter"), extensions: ["numi", "txt"] },
+  { name: t("allFilesFilter"), extensions: ["*"] },
 ];
 
 function buildMenu(win: BrowserWindow) {
   const send = (action: "open" | "save" | "saveAs") => win.webContents.send("menu:action", action);
 
   const fileMenu: MenuItemConstructorOptions = {
-    label: "File",
+    label: t("menuFile"),
     submenu: [
-      { label: "Open...", accelerator: "CmdOrCtrl+O", click: () => send("open") },
-      { label: "Save", accelerator: "CmdOrCtrl+S", click: () => send("save") },
-      { label: "Save As...", accelerator: "CmdOrCtrl+Shift+S", click: () => send("saveAs") },
+      { label: t("menuOpen"), accelerator: "CmdOrCtrl+O", click: () => send("open") },
+      { label: t("menuSave"), accelerator: "CmdOrCtrl+S", click: () => send("save") },
+      { label: t("menuSaveAs"), accelerator: "CmdOrCtrl+Shift+S", click: () => send("saveAs") },
       { type: "separator" },
-      process.platform === "darwin" ? { role: "close" } : { role: "quit" },
+      process.platform === "darwin" ? { role: "close", label: t("menuClose") } : { role: "quit", label: t("menuQuit") },
     ],
   };
 
   const template: MenuItemConstructorOptions[] = [
     ...(process.platform === "darwin"
-      ? [{ label: app.name, submenu: [{ role: "about" }, { type: "separator" }, { role: "quit" }] } as MenuItemConstructorOptions]
+      ? [
+          {
+            label: app.name,
+            submenu: [{ role: "about", label: t("menuAbout") }, { type: "separator" }, { role: "quit", label: t("menuQuit") }],
+          } as MenuItemConstructorOptions,
+        ]
       : []),
     fileMenu,
     {
-      label: "Edit",
+      label: t("menuEdit"),
       submenu: [
-        { role: "undo" },
-        { role: "redo" },
+        { role: "undo", label: t("menuUndo") },
+        { role: "redo", label: t("menuRedo") },
         { type: "separator" },
-        { role: "cut" },
-        { role: "copy" },
-        { role: "paste" },
-        { role: "selectAll" },
+        { role: "cut", label: t("menuCut") },
+        { role: "copy", label: t("menuCopy") },
+        { role: "paste", label: t("menuPaste") },
+        { role: "selectAll", label: t("menuSelectAll") },
       ],
     },
     {
-      label: "View",
+      label: t("menuView"),
       submenu: [
-        { role: "reload" },
-        { role: "toggleDevTools" },
+        { role: "reload", label: t("menuReload") },
+        { role: "toggleDevTools", label: t("menuDevTools") },
         { type: "separator" },
-        { role: "resetZoom" },
-        { role: "zoomIn" },
-        { role: "zoomOut" },
+        { role: "resetZoom", label: t("menuResetZoom") },
+        { role: "zoomIn", label: t("menuZoomIn") },
+        { role: "zoomOut", label: t("menuZoomOut") },
         { type: "separator" },
-        { role: "togglefullscreen" },
+        { role: "togglefullscreen", label: t("menuFullscreen") },
       ],
     },
   ];
@@ -92,7 +103,7 @@ function createWindow() {
 ipcMain.handle("file:open", async () => {
   const result = await dialog.showOpenDialog({
     properties: ["openFile"],
-    filters: FILE_FILTERS,
+    filters: fileFilters(),
   });
   if (result.canceled || result.filePaths.length === 0) return null;
 
@@ -116,13 +127,21 @@ ipcMain.handle("file:save", async (_event, filePath: string, content: string) =>
 
 ipcMain.handle("file:saveAs", async (_event, content: string) => {
   const result = await dialog.showSaveDialog({
-    filters: FILE_FILTERS,
-    defaultPath: "Untitled.numi",
+    filters: fileFilters(),
+    defaultPath: `${t("untitled")}.numi`,
   });
   if (result.canceled || !result.filePath) return null;
 
   await fs.writeFile(result.filePath, content, "utf-8");
   return { path: result.filePath, content };
+});
+
+ipcMain.on("app:setLanguage", (event, value: string) => {
+  const next = value in MESSAGES ? (value as Language) : "en";
+  if (next === language) return;
+  language = next;
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win) buildMenu(win);
 });
 
 ipcMain.on("window:setTitle", (event, title: string) => {

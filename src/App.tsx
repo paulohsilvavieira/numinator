@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { runDocument } from "./engine";
 import { useSettings } from "./useSettings";
 import { useFileDocument } from "./useFileDocument";
@@ -7,12 +7,21 @@ import Toolbar from "./components/Toolbar";
 import Editor from "./components/Editor";
 import ResultsPanel from "./components/ResultsPanel";
 import SettingsMenu from "./components/SettingsMenu";
+import I18nProvider from "./i18n/I18nProvider";
+import { makeTranslate, resolveLanguage } from "./i18n/translate";
 import "./App.css";
 
 function App() {
-  const { text, setText, fileName, isDirty, canUseFiles } = useFileDocument();
   const { settings, setSettings } = useSettings();
+  const language = resolveLanguage(settings.language);
+  const { text, setText, fileName, isDirty, canUseFiles } = useFileDocument(makeTranslate(language)("untitled"));
   const { textareaRef, highlightRef, resultsRef, syncScroll } = useSyncedScroll();
+
+  // the native menu and dialogs live in the main process, so tell it too
+  useEffect(() => {
+    document.documentElement.lang = language;
+    window.numinator?.setLanguage(language);
+  }, [language]);
 
   const results = useMemo(
     () => runDocument(text, { decimal: settings.decimal, thousands: settings.thousands, date: settings.date }),
@@ -20,6 +29,7 @@ function App() {
   );
 
   return (
+    <I18nProvider language={language}>
     <div
       className="numi"
       style={
@@ -38,6 +48,7 @@ function App() {
 
       <SettingsMenu settings={settings} onChange={setSettings} />
     </div>
+    </I18nProvider>
   );
 }
 

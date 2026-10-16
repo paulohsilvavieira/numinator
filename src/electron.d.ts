@@ -17,6 +17,7 @@ export interface NuminatorFileApi {
   saveFileAs: (content: string) => Promise<OpenedFile | null>;
   onMenuAction: (handler: (action: MenuAction) => void) => () => void;
   setTitle: (title: string) => void;
+  setLanguage: (language: string) => void;
   listFonts: () => Promise<FontInfo[]>;
 }
 

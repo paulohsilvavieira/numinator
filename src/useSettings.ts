@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 
 import type { DateFormat, NumberFormat } from "./engine";
+import type { LanguageSetting } from "./i18n/translate";
 
 export interface Settings extends NumberFormat {
   date: DateFormat;
+  language: LanguageSetting;
   fontFamily: string;
   fontSize: number;
 }
@@ -14,6 +16,7 @@ const DEFAULT_SETTINGS: Settings = {
   decimal: ".",
   thousands: ",",
   date: "system",
+  language: "system",
 };
 
 const STORAGE_KEY = "numinator.settings";

@@ -23,5 +23,6 @@ contextBridge.exposeInMainWorld("numinator", {
     return () => ipcRenderer.removeListener("menu:action", listener);
   },
   setTitle: (title: string) => ipcRenderer.send("window:setTitle", title),
+  setLanguage: (language: string) => ipcRenderer.send("app:setLanguage", language),
   listFonts: (): Promise<FontInfo[]> => ipcRenderer.invoke("fonts:list"),
 });

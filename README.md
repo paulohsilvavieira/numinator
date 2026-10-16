@@ -39,6 +39,7 @@ today + 2 weeks      Oct 1, 2026
 - Comparisons: `==`, `===`, `!=`, `!==`, `<`, `<=`, `>`, `>=`, returning `true`/`false`
 - Syntax highlighting in the editor
 - Native file save/open (`.numi` files) via the OS file dialogs and the app's File menu
+- Interface in English and Brazilian Portuguese (follows the system language, or pick one in Settings)
 - Configurable editor font/size, number separators and date format (system, `DD/MM/YYYY`, `MM/DD/YYYY`, `YYYY-MM-DD`)
 
 <p align="center">

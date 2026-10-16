@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { X } from 'lucide-react';
 import type { Settings } from '../useSettings';
 import { useSystemFonts } from '../useSystemFonts';
+import { useT } from '../i18n/translate';
 
 interface SettingsPanelProps {
   settings: Settings;
@@ -11,6 +12,7 @@ interface SettingsPanelProps {
 
 function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProps) {
   const fonts = useSystemFonts();
+  const t = useT();
 
   const { monospaceFonts, otherFonts } = useMemo(() => {
     const sorted = [...fonts].sort((a, b) => a.name.localeCompare(b.name));
@@ -24,18 +26,18 @@ function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProps) {
     <div className='settings-overlay' onClick={onClose}>
       <div className='settings-panel' onClick={(e) => e.stopPropagation()}>
         <div className='settings-header'>
-          <span>Settings</span>
+          <span>{t('settings')}</span>
           <button
             className='settings-close'
             onClick={onClose}
-            aria-label='Close'
+            aria-label={t('close')}
           >
             <X size={14} />
           </button>
         </div>
 
         <label className='settings-row'>
-          <span>Font</span>
+          <span>{t('font')}</span>
           <select
             value={settings.fontFamily}
             onChange={(e) =>
@@ -43,7 +45,7 @@ function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProps) {
             }
           >
             {monospaceFonts.length > 0 && (
-              <optgroup label='Monospace'>
+              <optgroup label={t('fontMonospace')}>
                 {monospaceFonts.map((f) => (
                   <option key={f.name} value={f.name}>
                     {f.name}
@@ -52,7 +54,7 @@ function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProps) {
               </optgroup>
             )}
             {otherFonts.length > 0 && (
-              <optgroup label='Other fonts'>
+              <optgroup label={t('fontOther')}>
                 {otherFonts.map((f) => (
                   <option key={f.name} value={f.name}>
                     {f.name}
@@ -64,7 +66,9 @@ function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProps) {
         </label>
 
         <label className='settings-row'>
-          <span>Size ({settings.fontSize}px)</span>
+          <span>
+            {t('size')} ({settings.fontSize}px)
+          </span>
           <input
             type='range'
             min={11}
@@ -76,7 +80,7 @@ function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProps) {
           />
         </label>
         <label className='settings-row'>
-          <span>Decimal separator</span>
+          <span>{t('decimalSeparator')}</span>
           <select
             value={settings.decimal}
             onChange={(e) => {
@@ -89,13 +93,13 @@ function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProps) {
               onChange({ ...settings, decimal, thousands });
             }}
           >
-            <option value='.'>Dot (1.5)</option>
-            <option value=','>Comma (1,5)</option>
+            <option value='.'>{t('dot')} (1.5)</option>
+            <option value=','>{t('comma')} (1,5)</option>
           </select>
         </label>
 
         <label className='settings-row'>
-          <span>Thousands separator</span>
+          <span>{t('thousandsSeparator')}</span>
           <select
             value={settings.thousands}
             onChange={(e) =>
@@ -105,24 +109,40 @@ function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProps) {
               })
             }
           >
-            {settings.decimal !== ',' && <option value=','>Comma (11,000)</option>}
-            {settings.decimal !== '.' && <option value='.'>Dot (11.000)</option>}
-            <option value=' '>Space (11 000)</option>
-            <option value=''>None (11000)</option>
+            {settings.decimal !== ',' && <option value=','>{t('comma')} (11,000)</option>}
+            {settings.decimal !== '.' && <option value='.'>{t('dot')} (11.000)</option>}
+            <option value=' '>{t('space')} (11 000)</option>
+            <option value=''>{t('none')} (11000)</option>
           </select>
         </label>
         <label className='settings-row'>
-          <span>Date format</span>
+          <span>{t('dateFormat')}</span>
           <select
             value={settings.date}
             onChange={(e) =>
               onChange({ ...settings, date: e.target.value as Settings['date'] })
             }
           >
-            <option value='system'>System (Oct 30, 2026)</option>
+            <option value='system'>{t('system')} (Oct 30, 2026)</option>
             <option value='dmy'>DD/MM/YYYY (30/10/2026)</option>
             <option value='mdy'>MM/DD/YYYY (10/30/2026)</option>
             <option value='ymd'>YYYY-MM-DD (2026-10-30)</option>
+          </select>
+        </label>
+        <label className='settings-row'>
+          <span>{t('language')}</span>
+          <select
+            value={settings.language}
+            onChange={(e) =>
+              onChange({
+                ...settings,
+                language: e.target.value as Settings['language'],
+              })
+            }
+          >
+            <option value='system'>{t('system')}</option>
+            <option value='en'>English</option>
+            <option value='pt-BR'>Português (Brasil)</option>
           </select>
         </label>
       </div>

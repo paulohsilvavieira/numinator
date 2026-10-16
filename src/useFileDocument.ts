@@ -25,7 +25,7 @@ function writeLocal(key: string, value: string | null) {
 // Documents live on disk (via Electron's file dialogs/fs) when running as
 // a desktop app; localStorage is only a scratch buffer + a pointer back to
 // the last opened file, so relaunching the app reopens where you left off.
-export function useFileDocument() {
+export function useFileDocument(untitledLabel = 'Untitled') {
   const [text, setText] = useState(() => readLocal(TEXT_KEY) ?? DEFAULT_TEXT);
   const [filePath, setFilePath] = useState<string | null>(() =>
     readLocal(PATH_KEY),
@@ -92,9 +92,9 @@ export function useFileDocument() {
 
   useEffect(() => {
     if (!window.numinator) return;
-    const base = fileName ? `${fileName}${isDirty ? ' •' : ''}` : 'Untitled';
+    const base = fileName ? `${fileName}${isDirty ? ' •' : ''}` : untitledLabel;
     window.numinator.setTitle(`${base} — Numinator`);
-  }, [fileName, isDirty]);
+  }, [fileName, isDirty, untitledLabel]);
 
   return {
     text,
