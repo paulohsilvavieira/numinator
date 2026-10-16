@@ -46,6 +46,16 @@ today + 2 weeks      Oct 1, 2026
   <img src="docs/settings.png" alt="Numinator settings panel" width="760">
 </p>
 
+## Download
+
+Latest release: **v0.2.2** — [all releases and release notes](https://github.com/paulohsilvavieira/numinator/releases/latest)
+
+| Platform | Download |
+| --- | --- |
+| Linux | [Numinator-0.2.2.AppImage](https://github.com/paulohsilvavieira/numinator/releases/download/v0.2.2/Numinator-0.2.2.AppImage) (portable; `chmod +x` and run) |
+| macOS (Apple Silicon) | [Numinator-0.2.2-arm64.dmg](https://github.com/paulohsilvavieira/numinator/releases/download/v0.2.2/Numinator-0.2.2-arm64.dmg) or [.zip](https://github.com/paulohsilvavieira/numinator/releases/download/v0.2.2/Numinator-0.2.2-arm64-mac.zip) |
+| Windows | [Numinator-Setup-0.2.2.exe](https://github.com/paulohsilvavieira/numinator/releases/download/v0.2.2/Numinator-Setup-0.2.2.exe) |
+
 ## Development
 
 ```bash
