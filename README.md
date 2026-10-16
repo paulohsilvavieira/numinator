@@ -4,6 +4,10 @@
 
 # Numinator
 
+<p align="center">
+  <img src="docs/screenshot.png" alt="Numinator: a text editor on the left, live results on the right" width="760">
+</p>
+
 A notational calculator — a text editor where every line can be a calculation, with the result shown live in a column on the right. Inspired by apps like [Numi](https://numi.app) and Soulver.
 
 ```
@@ -35,7 +39,11 @@ today + 2 weeks      Oct 1, 2026
 - Comparisons: `==`, `===`, `!=`, `!==`, `<`, `<=`, `>`, `>=`, returning `true`/`false`
 - Syntax highlighting in the editor
 - Native file save/open (`.numi` files) via the OS file dialogs and the app's File menu
-- Configurable editor font/size and number separators
+- Configurable editor font/size, number separators and date format (system, `DD/MM/YYYY`, `MM/DD/YYYY`, `YYYY-MM-DD`)
+
+<p align="center">
+  <img src="docs/settings.png" alt="Numinator settings panel" width="760">
+</p>
 
 ## Development
 
